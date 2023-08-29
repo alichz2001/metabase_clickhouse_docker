@@ -1,0 +1,57 @@
+version: '3'
+services:
+  metabase:
+    build: 
+      dockerfile: Dockerfile
+      context: ./
+    hostname: metabase
+    container_name: metabase
+    ports:
+      - "3000:3000"
+    restart: always
+    networks:
+      - metabase_network
+    environment:
+      - MB_DB_HOST=postgres
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=metabase
+      - MB_DB_PORT=5432
+      - MB_DB_USER=metabase
+      - MB_DB_PASS=password  # Change this to a secure password
+
+  postgres:
+    image: postgres:latest
+    hostname: postgres
+    container_name: postgres
+    networks:
+      - metabase_network
+    environment:
+      POSTGRES_DB: metabase
+      POSTGRES_USER: metabase
+      POSTGRES_PASSWORD: password  # Change this to match the password above
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  clickhouse:
+    image: yandex/clickhouse-server:latest
+    hostname: clickhouse
+    container_name: clickhouse
+    networks:
+      - metabase_network
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      - CLICKHOUSE_USER=admin
+      - CLICKHOUSE_PASSWORD=password  # Change this to a secure password
+      - CLICKHOUSE_DB=metabase
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+networks:
+  metabase_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  clickhouse_data:
